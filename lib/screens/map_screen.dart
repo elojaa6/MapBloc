@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:maps_app/blocs/location/location_bloc.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:maps_app/blocs/blocs.dart';
 import 'package:maps_app/views/views.dart';
 import 'package:maps_app/widgets/widgets.dart';
 
@@ -33,21 +34,31 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocBuilder<LocationBloc, LocationState>(
-        builder: (context, state) {
-          if (state.lastKnownLocation == null) {
+        builder: (context, locationState) {
+          if (locationState.lastKnownLocation == null) {
             return const Center(
               child: Text('Espere por favor ...'),
             );
           }
 
-          return SingleChildScrollView(
-            child: Stack(
-              children: [
-                MapView(
-                  initialLocation: state.lastKnownLocation!,
+          return BlocBuilder<MapBloc, MapState>(
+            builder: (context, state) {
+              Map<String, Polyline> polylines = Map.from(state.polylines);
+              if (!state.showMyRoute) {
+                polylines.removeWhere((key, value) => key == 'myRoute');
+              }
+
+              return SingleChildScrollView(
+                child: Stack(
+                  children: [
+                    MapView(
+                      initialLocation: locationState.lastKnownLocation!,
+                      polylines: polylines.values.toSet(),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
@@ -55,6 +66,8 @@ class _MapScreenState extends State<MapScreen> {
       floatingActionButton: const Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          BtnToggleUserRoute(),
+          BtnFollowUser(),
           BtnCurrentLocation(),
         ],
       ),
