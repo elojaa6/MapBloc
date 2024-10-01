@@ -1,12 +1,33 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:maps_app/blocs/blocs.dart';
+import 'package:maps_app/helpers/helpers.dart';
 
 class ManualMarker extends StatelessWidget {
   const ManualMarker({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<SearchBloc, SearchState>(
+      builder: (context, state) {
+        return state.displayManualMarker
+            ? const _ManualMarkerBody()
+            : const SizedBox();
+      },
+    );
+  }
+}
+
+class _ManualMarkerBody extends StatelessWidget {
+  const _ManualMarkerBody();
+
+  @override
+  Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final searchBloc = context.read<SearchBloc>();
+    final locationBloc = context.read<LocationBloc>();
+    final mapBloc = context.read<MapBloc>();
 
     return SizedBox(
       width: size.width,
@@ -43,7 +64,23 @@ class ManualMarker extends StatelessWidget {
                 elevation: 0,
                 height: 50.0,
                 shape: const StadiumBorder(),
-                onPressed: () {},
+                onPressed: () async {
+                  final start = locationBloc.state.lastKnownLocation;
+                  if (start == null) return;
+
+                  final end = mapBloc.mapCenter;
+                  if (end == null) return;
+
+                  showLoadingMessage(context);
+
+                  final destination =
+                      await searchBloc.getCoorsStartToEnd(start, end);
+                  mapBloc.drawRoutePoluline(destination);
+
+                  searchBloc.add(OnDisactivateManualMarkerEvent());
+
+                  Navigator.pop(context);
+                },
                 child: const Text(
                   'Confirmar destino',
                   style: TextStyle(
@@ -71,7 +108,10 @@ class _BtnBack extends StatelessWidget {
         maxRadius: 30.0,
         backgroundColor: Colors.white,
         child: IconButton(
-          onPressed: () {},
+          onPressed: () {
+            BlocProvider.of<SearchBloc>(context)
+                .add(OnDisactivateManualMarkerEvent());
+          },
           icon: const Icon(
             Icons.arrow_back_ios_new,
             color: Colors.black,

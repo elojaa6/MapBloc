@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'map_bloc.dart';
 
 sealed class MapEvent extends Equatable {
@@ -24,3 +25,11 @@ class UpdateUserPolylineEvent extends MapEvent {
 }
 
 class OnToggleUserRoute extends MapEvent {}
+
+class DisplayPolylinesEvent extends MapEvent {
+  final Map<String, Polyline> polylines;
+  
+  const DisplayPolylinesEvent({
+    required this.polylines,
+  });
+}

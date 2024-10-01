@@ -41,6 +41,7 @@ class MapView extends StatelessWidget {
           onMapCreated: (controller) =>
               mapBloc.add(OnMapInitialzedEvent(controller)),
           style: jsonEncode(uberMapTheme),
+          onCameraMove: (position) => mapBloc.mapCenter = position.target,
         ),
       ),
     );

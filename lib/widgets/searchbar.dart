@@ -1,8 +1,36 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:maps_app/blocs/blocs.dart';
 import 'package:maps_app/delegates/delegates.dart';
+import 'package:maps_app/models/models.dart';
 
 class Searchbar extends StatelessWidget {
   const Searchbar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SearchBloc, SearchState>(
+      builder: (context, state) {
+        return state.displayManualMarker
+            ? const SizedBox()
+            : FadeInDown(child: const _SearchbarBody());
+      },
+    );
+  }
+}
+
+class _SearchbarBody extends StatelessWidget {
+  const _SearchbarBody();
+
+  void onSearchResults(BuildContext context, SearchResult result) {
+    final searchBloc = context.read<SearchBloc>();
+
+    if (result.manual) {
+      searchBloc.add(OnActivateManualMarkerEvent());
+      return;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +47,8 @@ class Searchbar extends StatelessWidget {
             );
 
             if (result == null) return;
+
+            onSearchResults(context, result);
           },
           child: Container(
             padding:
