@@ -9,7 +9,7 @@ class TrafficService {
   final Dio _dioPlaces;
 
   final String _baseTrafficUrl = 'https://api.mapbox.com/directions/v5/mapbox';
-  final String _basePlaceUrl = 'https://api.mapbox.com/search/geocode/v6/forward';
+  final String _basePlaceUrl = 'https://api.mapbox.com/search/geocode/v6';
 
   TrafficService()
       : _dioTraffic = Dio()..interceptors.add(TrafficInterceptor()),
@@ -31,14 +31,28 @@ class TrafficService {
   Future<List<Feature>> getResultsByQuery(LatLng proximity, String query)async{
     if(query.isEmpty) return [];
 
-    final url = '$_basePlaceUrl?q=$query';
+    final url = '$_basePlaceUrl/forward?q=$query';
 
     final resp = await _dioPlaces.get(url, queryParameters: {
       'proximity': '${proximity.longitude},${proximity.latitude}',
+      'limit': 7,
     });
 
     final placesResponse = PlacesResponse.fromJson(resp.data);
 
     return placesResponse.features;
+  }
+
+
+  Future<Feature> getInformationByCoors(LatLng coors) async{
+
+    final url = '$_basePlaceUrl/reverse?longitude=${coors.longitude}&latitude=${coors.latitude}';
+    final res = await _dioPlaces.get(url, queryParameters: {
+      'limit': 1,
+    });
+
+    final placesResponse = PlacesResponse.fromJson(res.data);
+
+    return placesResponse.features[0];
   }
 }
